@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>APG Weekly Report (Static)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      line-height: 1.5;
+    }
+    h1 {
+      text-align: center;
+    }
+    .question-block {
+      margin-bottom: 1.2em;
+    }
+    textarea {
+      width: 100%;
+      min-height: 60px;
+      resize: vertical;
+      font-size: 1rem;
+      padding: 8px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>APG Weekly Report</h1>
+
+  <form id="report-form">
+    <!-- Each question + a textarea, using data-index to know which answer slot it is -->
+    <div class="question-block">
+      <label for="q0">1. What is your name?</label><br />
+      <textarea id="q0" data-index="0" required></textarea>
+    </div>
+    <div class="question-block">
+      <label for="q1">2. What is your role?</label><br />
+      <textarea id="q1" data-index="1" required></textarea>
+    </div>
+    <div class="question-block">
+      <label for="q2">3. Describe your main responsibilities:</label><br />
+      <textarea id="q2" data-index="2" required></textarea>
+    </div>
+    <div class="question-block">
+      <label for="q3">4. What goals did you achieve this week?</label><br />
+      <textarea id="q3" data-index="3" required></textarea>
+    </div>
+
+    <button type="button" id="generate-btn">Generate Word Report</button>
+  </form>
+
+  <!-- Dependencies for client-side .docx creation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.1.3/docx.umd.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+  <script>
+    // Grab references to the form and button
+    const form = document.getElementById("report-form");
+    const generateBtn = document.getElementById("generate-btn");
+
+    // These are the same questions from your Python code:
+    const QUESTIONS = [
+      "1. What is your name?",
+      "2. What is your role?",
+      "3. Describe your main responsibilities:",
+      "4. What goals did you achieve this week?"
+    ];
+
+    // When the user clicks “Generate Word Report,” run this:
+    generateBtn.addEventListener("click", async () => {
+      // 1. Read each textarea’s value
+      const answers = [];
+      for (let i = 0; i < QUESTIONS.length; i++) {
+        const ta = document.querySelector(`textarea[data-index="${i}"]`);
+        answers.push(ta.value.trim());
+      }
+
+      // 2. Use docx.umd.js to build a new Word document
+      const { Document, Packer, Paragraph, TextRun } = window.docx;
+
+      // Create a new Document()
+      const doc = new Document();
+
+      // Add a heading
+      doc.addSection({
+        children: [
+          // Add a large heading at top
+          new Paragraph({
+            children: [new TextRun({ text: "User Report", bold: true, size: 48 })],
+          }),
+          // Then one blank paragraph to separate
+          new Paragraph({ text: "" }),
+          // Now append each question + answer
+          ...QUESTIONS.map((qText, idx) => {
+            return [
+              // Question line
+              new Paragraph({
+                children: [new TextRun({ text: qText, bold: true, size: 24 })],
+              }),
+              // Answer line
+              new Paragraph({
+                children: [new TextRun({ text: answers[idx] || "(No answer provided)", size: 24 })],
+              }),
+              // Blank line to separate sections
+              new Paragraph({ text: "" }),
+            ];
+          }).flat(),
+        ],
+      });
+
+      // 3. Convert the Document into a Blob
+      const blob = await Packer.toBlob(doc);
+
+      // 4. Trigger a file download as “report.docx”
+      window.saveAs(blob, "report.docx");
+    });
+  </script>
+</body>
+</html>

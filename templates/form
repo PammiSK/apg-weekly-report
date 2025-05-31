@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Basic Report Generator</title>
+</head>
+<body>
+    <h1>Fill in Your Answers</h1>
+    <form method="post" action="/generate">
+        {# Loop over questions; use loop.index0 for the zero-based index #}
+        {% for question in questions %}
+            <div style="margin-bottom: 1em;">
+                <label for="q{{ loop.index0 }}">{{ question }}</label><br>
+                <textarea id="q{{ loop.index0 }}" name="q{{ loop.index0 }}" rows="3" cols="50" required></textarea>
+            </div>
+        {% endfor %}
+        <button type="submit">Generate Word Report</button>
+    </form>
+</body>
+</html>
